@@ -6,7 +6,7 @@ export default function CodeEditor({ code, setCode, language = "python" }) {
     <div className="rounded-2xl overflow-hidden border border-white/10 shadow-lg">
       <Editor
         height="400px"
-        defaultLanguage={language}
+        language={language}
         theme="vs-dark"
         value={code}
         onChange={(value) => setCode(value || "")}

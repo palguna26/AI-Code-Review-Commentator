@@ -63,13 +63,12 @@ async def process_code(req: CodeRequest):
 
         Return output ONLY in valid JSON with keys:
         summary (string), suggestions (array of strings).
-
+    
         Code:
         {req.code}
         """
         response = model.generate_content(prompt)
 
-        # --- Extract text safely from Gemini response ---
         raw_text = ""
         if response and response.candidates:
             try:
@@ -77,14 +76,19 @@ async def process_code(req: CodeRequest):
             except Exception:
                 raw_text = response.text or ""
 
-        # --- Try strict JSON parse first ---
+    # --- Strip Markdown fences if present ---
+        raw_text = raw_text.strip()
+        if raw_text.startswith("```"):
+            raw_text = raw_text.split("```")[1]  # remove first ```
+            raw_text = raw_text.replace("json", "", 1).strip("` \n")
+
+    # --- Try strict JSON parse ---
         try:
             review = json.loads(raw_text)
-            # Ensure keys exist
             review.setdefault("summary", "No summary")
             review.setdefault("suggestions", [])
         except Exception:
-            # fallback: parse lines manually
+        # fallback: parse as plain text
             lines = [line.strip("-• \n") for line in raw_text.splitlines() if line.strip()]
             summary = lines[0] if lines else "No summary"
             suggestions = lines[1:] if len(lines) > 1 else []

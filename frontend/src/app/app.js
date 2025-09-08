@@ -22,10 +22,26 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-gray-100 flex flex-col">
       {/* Header */}
-      <header className="p-6 text-center backdrop-blur-md bg-white/5 shadow-lg border-b border-white/10">
-        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
-          🤖 AI Code {mode === "commenter" ? "Commenter" : "Reviewer"}
+      <header className="p-6 flex flex-col md:flex-row items-center justify-between backdrop-blur-md bg-white/5 shadow-lg border-b border-white/10">
+        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent mb-4 md:mb-0">
+          🤖 AI Code Assistant
         </h1>
+
+        {/* Language Selector */}
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="px-4 py-2 rounded-lg bg-gray-800 border border-white/10 text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        >
+          <option value="python">🐍 Python</option>
+          <option value="javascript">⚡ JavaScript</option>
+          <option value="java">☕ Java</option>
+          <option value="cpp">💻 C++</option>
+          <option value="csharp">#️⃣ C#</option>
+          <option value="go">🐹 Go</option>
+          <option value="ruby">💎 Ruby</option>
+          <option value="php">🐘 PHP</option>
+        </select>
       </header>
 
       {/* Main Content */}
@@ -54,10 +70,40 @@ export default function App() {
           </button>
         </div>
 
-        {/* Code Input */}
-        <div className="backdrop-blur-lg bg-white/5 border border-white/10 rounded-2xl p-4 shadow-xl">
-          <CodeEditor code={code} setCode={setCode} />
-        </div>
+        {/* Code + Output */}
+        {mode === "commenter" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="backdrop-blur-lg bg-white/5 border border-white/10 rounded-2xl p-4 shadow-xl">
+              <CodeEditor code={code} setCode={setCode} language={language} />
+
+            </div>
+
+            <div className="backdrop-blur-lg bg-white/5 border border-white/10 rounded-2xl p-4 shadow-xl">
+              {result?.commented_code ? (
+                <OutputPanel commentedCode={result.commented_code} />
+              ) : (
+                <div className="text-gray-400 text-sm">
+                  // AI output will appear here...
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="backdrop-blur-lg bg-white/5 border border-white/10 rounded-2xl p-4 shadow-xl">
+              <CodeEditor code={code} setCode={setCode} language={language} />
+
+            </div>
+            {result && !result.error && (
+              <div className="mt-8">
+                <ReviewPanel
+                  summary={result.summary || "No summary available"}
+                  suggestions={result.suggestions || []}
+                />
+              </div>
+            )}
+          </>
+        )}
 
         {/* Run Button */}
         <div className="flex justify-center mt-6">
@@ -70,24 +116,10 @@ export default function App() {
           </button>
         </div>
 
-        {/* Output */}
+        {/* Errors */}
         {result?.error && (
           <div className="mt-6 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-300">
             ⚠️ {result.error}
-          </div>
-        )}
-
-        {!result?.error && result && (
-          <div className="mt-8 space-y-6">
-            {mode === "commenter" && result.commented_code && (
-              <OutputPanel commentedCode={result.commented_code} />
-            )}
-            {mode === "reviewer" && (
-              <ReviewPanel
-                summary={result.summary || "No summary available"}
-                suggestions={result.suggestions || []}
-              />
-            )}
           </div>
         )}
       </main>
